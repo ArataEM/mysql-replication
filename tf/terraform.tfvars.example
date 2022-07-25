@@ -1,0 +1,6 @@
+profile = "devops"
+availability_zones = ["eu-central-1a","eu-central-1b"]
+
+image_id = "ami-065deacbcaac64cf2"
+replicas = 2
+public_key = "~/.ssh/id_ed25519.pub"
