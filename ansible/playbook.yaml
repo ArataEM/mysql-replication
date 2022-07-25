@@ -1,0 +1,71 @@
+- hosts: db_servers
+  remote_user: ubuntu
+  become: true
+  gather_facts: true
+
+  tasks:
+  - name: Upgrade packages
+    apt:
+      upgrade: yes
+      update_cache: yes
+
+  - name: Set hostname
+    hostname:
+      name: "{{ inventory_hostname }}"
+
+  - name: Install required packages
+    apt:
+      name:
+        - curl
+        - gnupg2
+        - python3-pip
+        - python3-dev
+        - default-libmysqlclient-dev
+        - build-essential
+      state: present
+      update_cache: yes
+
+  - name: Install mysqlclient python package
+    pip:
+      name: mysqlclient
+
+  - name: Add Percona repo
+    apt:
+      deb: "https://repo.percona.com/apt/percona-release_latest.{{ ansible_distribution_release }}_all.deb"
+  
+  - name: Set Percona ansible_dist
+    shell: percona-release setup ps80
+  
+  - name: Install Percona MySQL
+    apt:
+      name: percona-server-server
+      state: present
+      update_cache: yes
+
+  - name: Copy MySQL config
+    template:
+      src: templates/mysqld.cnf.j2
+      dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+      owner: root
+      group: root
+      mode: 0644
+  
+  - name: Restart MySQL
+    systemd:
+      service: mysql
+      state: restarted
+
+
+- hosts: master
+  remote_user: ubuntu
+  become: true
+  gather_facts: false
+
+  tasks:
+  - name: Create user for replication
+    community.mysql.mysql_user:
+      name: replication
+      host: "10.2.%.%"
+      password: replica321
+      priv: "*.*:REPLICATION SLAVE"
+      state: present

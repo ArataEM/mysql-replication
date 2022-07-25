@@ -10,7 +10,7 @@ variable "availability_zones" {
 
 variable "image_id" {
   type = string
-  default = "ami-065deacbcaac64cf2"
+  default = "ami-0c9354388bb36c088"
 }
 
 variable "replicas" {
